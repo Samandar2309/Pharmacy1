@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Register & OTP Test</title>
+</head>
+<body>
+    <h2>Ro'yhatdan o'tish</h2>
+    <form id="registerForm">
+        <input type="text" name="phone_number" placeholder="901234567" required><br><br>
+        <input type="text" name="full_name" placeholder="Ism Familiya" required><br><br>
+        <input type="password" name="password" placeholder="Parol" required><br><br>
+        <button type="submit">Ro'yhatdan o'tish</button>
+    </form>
+
+    <h2>OTP tasdiqlash</h2>
+    <form id="otpForm">
+        <input type="text" name="phone_number" placeholder="901234567" required><br><br>
+        <input type="text" name="code" placeholder="OTP kodi" required><br><br>
+        <button type="submit">Tasdiqlash</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        const registerForm = document.getElementById("registerForm");
+        const otpForm = document.getElementById("otpForm");
+        const resultDiv = document.getElementById("result");
+
+        // 🔹 Register
+        registerForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const data = {
+                phone_number: registerForm.phone_number.value,
+                full_name: registerForm.full_name.value,
+                password: registerForm.password.value
+            };
+
+            const res = await fetch("/users/register/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            const json = await res.json();
+            resultDiv.innerText = JSON.stringify(json, null, 2);
+        });
+
+        // 🔹 Verify OTP
+        otpForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const data = {
+                phone_number: otpForm.phone_number.value,
+                code: otpForm.code.value
+            };
+
+            const res = await fetch("/users/verify-otp/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            const json = await res.json();
+            resultDiv.innerText = JSON.stringify(json, null, 2);
+        });
+    </script>
+</body>
+</html>

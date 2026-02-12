@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <title>Prescription API Test</title>
+</head>
+<body>
+  <h2>Prescription API test</h2>
+
+  <hr>
+
+  <h3>1️⃣ Retsept yuborish (mijoz)</h3>
+  <input type="file" id="imageInput" />
+  <button onclick="createPrescription()">Yuborish</button>
+
+  <pre id="createResult"></pre>
+
+  <hr>
+
+  <h3>2️⃣ Pending retseptlar (operator)</h3>
+  <button onclick="getPending()">Pending ko‘rish</button>
+  <pre id="pendingResult"></pre>
+
+  <hr>
+
+  <h3>3️⃣ Retseptni tasdiqlash (operator)</h3>
+  <input type="number" id="approveId" placeholder="Prescription ID" />
+  <button onclick="approve()">Approve</button>
+  <pre id="approveResult"></pre>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000/api/v7";
+    const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwNjQ1OTAyLCJpYXQiOjE3NzA2NDQxMDIsImp0aSI6IjZjNjJjMzFiYjkzYzRlZTNiODNlMGI1ODY4NTUyYTNmIiwidXNlcl9pZCI6IjEifQ.RSTc_5j0roQr0XtjLxN3cHZ9-4AIRVypbBBXmqFS1ZU"; // <-- o'zingning tokening
+
+    function authHeaders() {
+      return {
+        "Authorization": "Bearer " + TOKEN
+      };
+    }
+
+    // 1️⃣ CREATE PRESCRIPTION
+    async function createPrescription() {
+      const fileInput = document.getElementById("imageInput");
+      const file = fileInput.files[0];
+
+      const formData = new FormData();
+      formData.append("rasmlar", file);
+
+      const res = await fetch(`${API_BASE}/prescriptions/`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: formData
+      });
+
+      const data = await res.json();
+      document.getElementById("createResult").textContent =
+        JSON.stringify(data, null, 2);
+    }
+
+    // 2️⃣ GET PENDING
+    async function getPending() {
+      const res = await fetch(`${API_BASE}/prescriptions/pending/`, {
+        headers: {
+          "Authorization": "Bearer " + TOKEN
+        }
+      });
+
+      const data = await res.json();
+      document.getElementById("pendingResult").textContent =
+        JSON.stringify(data, null, 2);
+    }
+
+    // 3️⃣ APPROVE
+    async function approve() {
+      const id = document.getElementById("approveId").value;
+
+      const res = await fetch(`${API_BASE}/prescriptions/${id}/approve/`, {
+        method: "POST",
+        headers: authHeaders()
+      });
+
+      const data = await res.json();
+      document.getElementById("approveResult").textContent =
+        JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>

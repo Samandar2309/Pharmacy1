@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Dorixona Users App Test</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; background-color: #f0f2f5; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        input { margin: 8px 0; padding: 10px; width: calc(100% - 22px); border: 1px solid #ddd; border-radius: 6px; }
+        button { margin: 10px 0; padding: 10px 20px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 6px; transition: 0.3s; }
+        button:hover { background-color: #0056b3; }
+        fieldset { margin-bottom: 20px; padding: 15px; border: 1px solid #e3e3e3; border-radius: 8px; }
+        legend { font-weight: bold; color: #333; padding: 0 10px; }
+        #result { white-space: pre-wrap; background: #272822; color: #f8f8f2; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; min-height: 50px; }
+        .status-bar { margin-bottom: 10px; font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>💊 Dorixona API Test</h1>
+    <div class="status-bar" id="token_status">Token: Mavjud emas</div>
+
+    <fieldset>
+        <legend>Ro'yhatdan o'tish</legend>
+        <input type="text" id="reg_phone" placeholder="901234567 (faqat 9 ta raqam)">
+        <input type="text" id="reg_name" placeholder="Ism Familiya">
+        <input type="password" id="reg_pass" placeholder="Parol">
+        <button onclick="apiCall('register')">Ro'yhatdan o'tish</button>
+    </fieldset>
+
+    <fieldset>
+        <legend>OTP Tasdiqlash</legend>
+        <input type="text" id="otp_phone" placeholder="901234567">
+        <input type="text" id="otp_code" placeholder="4 xonali kod">
+        <button onclick="apiCall('verify')">Tasdiqlash</button>
+    </fieldset>
+
+    <fieldset>
+        <legend>Login</legend>
+        <input type="text" id="login_phone" placeholder="901234567">
+        <input type="password" id="login_pass" placeholder="Parol">
+        <button onclick="apiCall('login')">Kirish</button>
+    </fieldset>
+
+    <fieldset>
+        <legend>Boshqaruv</legend>
+        <button onclick="apiCall('profile')" style="background-color: #28a745;">Profilni ko‘rish</button>
+        <button onclick="apiCall('logout')" style="background-color: #dc3545;">Logout</button>
+    </fieldset>
+
+    <fieldset>
+        <legend>Parol tiklash</legend>
+        <input type="text" id="forgot_phone" placeholder="901234567">
+        <button onclick="apiCall('forgot')">OTP yuborish</button>
+        <hr>
+        <input type="text" id="reset_phone" placeholder="901234567">
+        <input type="text" id="reset_code" placeholder="Kod">
+        <input type="password" id="reset_pass" placeholder="Yangi parol">
+        <button onclick="apiCall('reset')">Parolni yangilash</button>
+    </fieldset>
+
+    <h2>Natija:</h2>
+    <div id="result">Kutilmoqda...</div>
+</div>
+
+<script>
+// ❗ MUHIM: Django ishlayotgan to'liq manzilni kiriting
+const BASE_URL = window.location.origin;
+let accessToken = localStorage.getItem("access") || "";
+let refreshToken = localStorage.getItem("refresh") || "";
+
+updateTokenStatus();
+
+function showResult(data) {
+    document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+}
+
+function updateTokenStatus() {
+    const status = document.getElementById("token_status");
+    status.innerText = accessToken ? "Token: ✅ Saqlangan" : "Token: ❌ Mavjud emas";
+}
+
+async function apiCall(type) {
+    let url = "";
+    let method = "POST";
+    let bodyData = {};
+    let headers = {"Content-Type": "application/json"};
+
+    if (accessToken) {
+        headers["Authorization"] = "Bearer " + accessToken;
+    }
+
+    try {
+        switch (type) {
+            case 'register':
+                url = "/api/v2/users/register/";
+                bodyData = {
+                    phone_number: "+998" + document.getElementById("reg_phone").value,
+                    full_name: document.getElementById("reg_name").value,
+                    password: document.getElementById("reg_pass").value
+                };
+                break;
+            case 'verify':
+                url = "/api/v2/users/verify/";
+                bodyData = {
+                    phone_number: "+998" + document.getElementById("otp_phone").value,
+                    code: document.getElementById("otp_code").value
+                };
+                break;
+            case 'login':
+                url = "/api/v2/users/login/";
+                bodyData = {
+                    phone_number: "+998" + document.getElementById("login_phone").value,
+                    password: document.getElementById("login_pass").value
+                };
+                break;
+            case 'profile':
+                url = "/api/v2/users/me/";
+                method = "GET";
+                bodyData = null;
+                break;
+            case 'logout':
+                url = "/api/v2/users/logout/";
+                bodyData = { refresh: refreshToken };
+                break;
+            case 'forgot':
+                url = "/api/v2/users/password/forgot/";
+                bodyData = { phone_number: "+998" + document.getElementById("forgot_phone").value };
+                break;
+            case 'reset':
+                url = "/api/v2/users/password/reset/";
+                bodyData = {
+                    phone_number: "+998" + document.getElementById("reset_phone").value,
+                    code: document.getElementById("reset_code").value,
+                    new_password: document.getElementById("reset_pass").value
+                };
+                break;
+        }
+
+        console.log(`Yuborilmoqda: ${BASE_URL}${url}`);
+
+        const response = await fetch(`${BASE_URL}${url}`, {
+            method: method,
+            headers: headers,
+            body: bodyData ? JSON.stringify(bodyData) : null
+        });
+
+        const result = await response.json();
+
+        // Tokenlarni saqlash
+        if (result.data?.access) {
+            accessToken = result.data.access;
+            refreshToken = result.data.refresh;
+            localStorage.setItem("access", accessToken);
+            localStorage.setItem("refresh", refreshToken);
+            updateTokenStatus();
+        }
+
+        if (type === 'logout') {
+            accessToken = ""; refreshToken = "";
+            localStorage.clear();
+            updateTokenStatus();
+        }
+
+        showResult(result);
+
+    } catch (error) {
+        showResult({ error: "Xatolik: " + error.message });
+    }
+}
+</script>
+</body>
+</html>

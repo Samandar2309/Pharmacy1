@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block content %}
+  <h1>Retseptlarni rad etish</h1>
+
+  <p>
+    Quyidagi <strong>{{ prescriptions|length }}</strong> ta retsept
+    <strong>rad etiladi</strong>.
+    Davom etish uchun sabab kiriting.
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    {% for prescription in prescriptions %}
+      <input type="hidden"
+             name="{{ action_checkbox_name }}"
+             value="{{ prescription.pk }}">
+    {% endfor %}
+
+    <input type="hidden" name="confirm_rejection" value="1">
+
+    <div style="margin-top: 20px;">
+      <input type="submit"
+             value="Rad etish"
+             class="default"
+             style="background:#f44336; border-color:#f44336; color:white;">
+      <a href=""
+         class="button cancel-link"
+         style="margin-left: 10px;">
+        Bekor qilish
+      </a>
+    </div>
+  </form>
+{% endblock %}
