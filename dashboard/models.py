@@ -133,9 +133,6 @@ class CourierPerformance(TimeStampedModel):
         return f"{self.courier} performance"
 
 
-# =========================================================
-# 4️⃣ SYSTEM HEALTH LOG
-# =========================================================
 
 class SystemHealthLog(TimeStampedModel):
     """

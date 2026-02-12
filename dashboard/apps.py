@@ -6,5 +6,4 @@ class DashboardConfig(AppConfig):
     name = 'dashboard'
 
     def ready(self):
-        # Register signals to keep dashboard stats in sync.
         from . import signals  # noqa: F401
